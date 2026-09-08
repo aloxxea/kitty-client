@@ -1,0 +1,9 @@
+# Лаунчер / сборка — вне git
+GravityClient/
+build_out.log
+*.zip
+node_modules/
+.DS_Store
+
+# Супабас-кэш CLI
+supabase/.temp/

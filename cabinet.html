@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет — Kitty Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="cab-page">
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">Kitty<span class="logo__dot"></span></a>
+      <nav class="nav">
+        <a href="index.html">Главная</a>
+        <a href="cabinet.html">Мой аккаунт</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <span class="theme-toggle__icon" aria-hidden="true"></span>
+      </button>
+      <button id="logoutBtn" class="btn btn--ghost btn--sm">Выйти</button>
+    </div>
+  </header>
+
+  <main class="cab">
+    <div class="cab__layout">
+
+      <aside class="cab__sidebar">
+        <div class="cab__avatar"><img id="cabAvatar" class="cab__avatar-img" alt=""></div>
+        <div class="cab__nick" id="cabNick">—</div>
+        <div class="cab__role cab__role--user" id="cabRole">ЮЗЕР</div>
+        <div class="cab__tier" id="cabTier">—</div>
+        <nav class="cab__nav">
+          <a href="#overview" class="cab__nav-link active" data-tab="overview">Обзор</a>
+          <a href="#profile" class="cab__nav-link" data-tab="profile">Профиль</a>
+          <a href="#subscription" class="cab__nav-link" data-tab="subscription">Подписка</a>
+          <a href="#admin" class="cab__nav-link" data-tab="admin" id="navAdmin">Админка</a>
+        </nav>
+      </aside>
+
+      <section class="cab__content">
+
+        <div class="tab active" id="tab-overview">
+          <div class="cab__hero">
+            <div class="cab__hero-avatar"><img id="heroAvatar" class="cab__hero-avatar-img" alt=""></div>
+            <div class="cab__hero-info">
+              <h1 class="cab__title">Привет, <span id="ovNick">—</span>!</h1>
+              <p class="cab__sub">Рады видеть в Kitty Client.</p>
+            </div>
+            <div class="cab__hero-right">
+              <span class="cab__pill" id="ovPill">—</span>
+              <span class="cab__role cab__role--user" id="heroRole">ЮЗЕР</span>
+            </div>
+          </div>
+
+          <div class="cab__stats">
+            <div class="cab__stat">
+              <span class="cab__stat-icon">◈</span>
+              <span class="cab__stat-label">Подписка</span>
+              <span class="cab__stat-value" id="ovTier">—</span>            </div>
+            <div class="cab__stat">
+              <span class="cab__stat-icon">⛭</span>
+              <span class="cab__stat-label">Активна до</span>
+              <span class="cab__stat-value" id="ovExpire">—</span>
+            </div>
+            <div class="cab__stat">
+              <span class="cab__stat-icon">▰</span>
+              <span class="cab__stat-label">Осталось дней</span>
+              <span class="cab__stat-value" id="ovDays">—</span>
+            </div>
+          </div>
+
+          <div class="cab__panel">
+            <div class="cab__panel-title">◉ Что нового?</div>
+            <div class="cab__row">
+              <span class="cab__row-label">▸ v1.0.0</span>
+              <span class="cab__row-value">Браузер модов, темы, новый кабинет</span>
+            </div>
+            <div class="cab__row">
+              <span class="cab__row-label">▸ v0.9.0</span>
+              <span class="cab__row-value">Встроенные моды и оптимизация</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-profile">
+          <h1 class="cab__title">Профиль</h1>
+          <p class="cab__sub">Ваши данные аккаунта.</p>
+          <div class="cab__card">
+            <div class="cab__row">
+              <span class="cab__row-label">⛓ Логин</span>
+              <span class="cab__row-value" id="pfLogin">—</span>
+            </div>
+            <div class="cab__row">
+              <span class="cab__row-label">⌬ Email</span>
+              <span class="cab__row-value" id="pfEmail">—</span>
+            </div>
+            <div class="cab__row">
+              <span class="cab__row-label">⌛ Дата регистрации</span>
+              <span class="cab__row-value" id="pfDate">—</span>
+            </div>
+          </div>
+
+          <div class="cab__card">
+            <h3 class="sub-block__title">Связка с Telegram</h3>
+            <p class="sub-block__desc" id="tgDesc">Привяжите Telegram, чтобы получать коды 2FA и напоминания о подписке в боте.</p>
+            <div id="tgState">
+              <button id="tgLinkBtn" class="btn btn--accent btn--sm" type="button">Привязать Telegram</button>
+            </div>
+            <p id="tgMsg" class="auth__error"></p>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-subscription">
+          <h1 class="cab__title">Подписка</h1>
+          <p class="cab__sub">Активируйте ключ или приобретите подписку, чтобы открыть лаунчер.</p>
+
+          <div class="sub-status" id="subStatus">
+            <div class="sub-status__badge">Без подписки</div>
+            <p class="sub-status__text">Ваш аккаунт не имеет активной подписки. Лаунчер доступен только оформившим подписку.</p>
+          </div>
+
+          <div class="sub-block">
+            <h3 class="sub-block__title">Ввести ключ</h3>
+            <div class="sub-key-row">
+              <input class="field__input" type="text" id="subKey" placeholder="XXXX-XXXX-XXXX-XXXX">
+              <button id="activateKey" class="btn btn--accent">Активировать</button>
+            </div>
+            <p id="subError" class="auth__error"></p>
+          </div>
+
+          <div class="sub-block">
+            <h3 class="sub-block__title">Купить подписку</h3>
+            <p class="sub-block__desc">Выберите тариф — оплата демонстрационная (без реального списания).</p>
+            <div class="sub-plans">
+              <div class="sub-plan">
+                <div class="sub-plan__name">1 месяц</div>
+                <div class="sub-plan__price">299 ₽</div>
+                <button class="btn btn--ghost btn--sm" data-buy="month">Купить</button>
+              </div>
+              <div class="sub-plan sub-plan--popular">
+                <div class="sub-plan__name">90 дней</div>
+                <div class="sub-plan__price">599 ₽</div>
+                <button class="btn btn--accent btn--sm" data-buy="quarter">Купить</button>
+              </div>
+              <div class="sub-plan">
+                <div class="sub-plan__name">Навсегда</div>
+                <div class="sub-plan__price">1499 ₽</div>
+                <button class="btn btn--accent btn--sm" data-buy="lifetime">Купить</button>
+              </div>
+            </div>
+            <p id="buyMsg" class="sub-buy-msg"></p>
+          </div>
+        </div>
+
+        <div class="tab" id="tab-admin">
+          <h1 class="cab__title">Админ-панель</h1>
+          <p class="cab__sub">Управление пользователями, ролями и подписками.</p>
+          <div class="admin-toolbar">
+            <input class="field__input admin-search" id="adminSearch" type="text" placeholder="Поиск по логину или email...">
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="adminTable">
+              <thead>
+                <tr>
+                  <th>Логин</th>
+                  <th>Email</th>
+                  <th>Роль</th>
+                  <th>Подписка</th>
+                  <th>Статус</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="adminBody"></tbody>
+            </table>
+          </div>
+          <p id="adminMsg" class="sub-buy-msg"></p>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__bottom">© 2026 Kitty Client. Не является официальным продуктом Mojang.</div>
+  </footer>
+
+  <script src="cabinet.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitty Client — Minecraft 1.21.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase.js"></script>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">Kitty<span class="logo__dot"></span></a>
+      <nav class="nav">
+        <a href="#features">Возможности</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="#download">Скачать</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <span class="theme-toggle__icon" aria-hidden="true"></span>
+      </button>
+      <div class="header__auth" id="headerAuth">
+        <a href="login.html" class="btn btn--ghost btn--sm">Войти</a>
+        <a href="register.html" class="btn btn--accent btn--sm">Купить</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero__glow"></div>
+    <div class="container hero__inner">
+      <div class="hero__badge">Fabric 1.21.1 · Платный</div>
+      <h1 class="hero__title">Kitty Client</h1>
+      <p class="hero__text">Мощный клиент для Minecraft с встроенным мод-менеджером, модами и комфортной настройкой. Всё из одного лаунчера.</p>
+      <div class="hero__actions">
+        <a href="register.html" class="btn btn--accent btn--lg">Купить лицензию</a>
+        <a href="#features" class="btn btn--ghost btn--lg">Узнать больше</a>
+      </div>
+      <div class="hero__stats">
+        <div class="stat">
+          <strong class="stat__value">1.21.1</strong>
+          <span class="stat__label">Версия MC</span>
+        </div>
+        <div class="stat">
+          <strong class="stat__value">Fabric</strong>
+          <span class="stat__label">Лоадер</span>
+        </div>
+        <div class="stat">
+          <strong class="stat__value">24/7</strong>
+          <span class="stat__label">Поддержка</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <div class="container">
+      <h2 class="section__title">Что внутри</h2>
+      <p class="section__subtitle">Всё, что нужно для комфортной игры — и немного больше</p>
+      <div class="features">
+        <div class="feature">
+          <div class="feature__icon">⚡</div>
+          <h3>Быстрый лаунчер</h3>
+          <p>Автоматическая установка Minecraft, Fabric, библиотек и ассетов. Нажал «Играю» — и поехал.</p>
+        </div>
+        <div class="feature">
+          <div class="feature__icon">📦</div>
+          <h3>Встроенные моды</h3>
+          <p>Оптимизации: Sodium, Lithium и другие моды ставятся прямо из лаунчера.</p>
+        </div>
+        <div class="feature">
+          <div class="feature__icon">🔍</div>
+          <h3>Браузер модов</h3>
+          <p>Ищите и скачивайте моды с Modrinth прямо в лаунчере. Без браузеров.</p>
+        </div>
+        <div class="feature">
+          <div class="feature__icon">🎨</div>
+          <h3>Темы оформления</h3>
+          <p>Переключайте цветовую палитру в один клик. Синий, фиолетовый, оранжевый.</p>
+        </div>
+        <div class="feature">
+          <div class="feature__icon">🛡️</div>
+          <h3>Безопасность</h3>
+          <p>Клиент не содержит вирусов и не собирает данные. Проверь сам.</p>
+        </div>
+        <div class="feature">
+          <div class="feature__icon">⚙️</div>
+          <h3>Гибкие настройки</h3>
+          <p>Ник, выделение памяти, папка игры — всё настраивается за секунду.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="section section--pricing">
+    <div class="container">
+      <h2 class="section__title">Тарифы</h2>
+      <p class="section__subtitle">Выберите удобный срок. Оплата демонстрационная — без реального списания.</p>
+      <div class="pricing">
+        <div class="price-card">
+          <div class="price-card__name">1 месяц</div>
+          <div class="price-card__price">299 ₽</div>
+          <div class="price-card__period">подписка на 30 дней</div>
+          <ul class="price-card__list">
+            <li>Доступ к лаунчеру</li>
+            <li>Все обновления</li>
+            <li>Браузер модов</li>
+            <li>Темы оформления</li>
+          </ul>
+          <a href="register.html" class="btn btn--ghost btn--full">Купить</a>
+        </div>
+        <div class="price-card price-card--popular">
+          <div class="price-card__badge">Выгодно</div>
+          <div class="price-card__name">90 дней</div>
+          <div class="price-card__price">599 ₽</div>
+          <div class="price-card__period">подписка на 3 месяца</div>
+          <ul class="price-card__list">
+            <li>Доступ к лаунчеру</li>
+            <li>Все обновления</li>
+            <li>Браузер модов</li>
+            <li>Темы оформления</li>
+            <li>Приоритетная поддержка</li>
+          </ul>
+          <a href="register.html" class="btn btn--accent btn--full">Купить</a>
+        </div>
+        <div class="price-card">
+          <div class="price-card__name">Навсегда</div>
+          <div class="price-card__price">1499 ₽</div>
+          <div class="price-card__period">одноразовая оплата</div>
+          <ul class="price-card__list">
+            <li>Всё из «90 дней»</li>
+            <li>Без срока действия</li>
+            <li>Бета-обновления</li>
+            <li>Эксклюзивные темы</li>
+          </ul>
+          <a href="register.html" class="btn btn--accent btn--full">Купить</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="download" class="section section--download">
+    <div class="container download__inner">
+      <div class="download__info">
+        <h2 class="section__title download__title">Скачать Kitty Client</h2>
+        <p class="download__version">Последняя версия · 1.0.0</p>
+        <p class="download__desc">После покупки лицензии скачайте лаунчер и активируйте ключ в личном кабинете.</p>
+        <div class="download__reqs">
+          <div class="req">
+            <span class="req__label">ОС</span>
+            <span class="req__value">Windows 10/11</span>
+          </div>
+          <div class="req">
+            <span class="req__label">Java</span>
+            <span class="req__value">21+ (в комплекте)</span>
+          </div>
+          <div class="req">
+            <span class="req__label">Размер</span>
+            <span class="req__value">~30 МБ</span>
+          </div>
+        </div>
+        <a href="#" class="btn btn--accent btn--lg download__btn">
+          <span class="download__btn-icon">⬇</span>
+          Скачать лаунчер
+        </a>
+        <p class="download__note">Требуется лицензия · Активация в личном кабинете</p>
+      </div>
+      <div class="download__visual">
+        <div class="mockup">
+          <div class="mockup__bar">
+            <span class="mockup__dot mockup__dot--red"></span>
+            <span class="mockup__dot mockup__dot--yellow"></span>
+            <span class="mockup__dot mockup__dot--green"></span>
+          </div>
+          <div class="mockup__content">
+            <div class="mockup__header">Kitty Client</div>
+            <div class="mockup__avatar"></div>
+            <div class="mockup__bar-progress"></div>
+            <div class="mockup__status">Готов к запуску</div>
+            <div class="mockup__btn">Запустить игру</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__left">
+        <a href="index.html" class="logo">Kitty<span class="logo__dot"></span></a>
+        <p>Minecraft 1.21.1 · Fabric · ПО</p>
+      </div>
+      <div class="footer__right">
+        <a href="#features">Возможности</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="login.html">Войти</a>
+      </div>
+    </div>
+    <div class="footer__bottom">© 2026 Kitty Client. Не является официальным продуктом Mojang.</div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

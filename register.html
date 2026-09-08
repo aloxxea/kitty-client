@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация — Kitty Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">Kitty<span class="logo__dot"></span></a>
+      <nav class="nav">
+        <a href="index.html#features">Возможности</a>
+        <a href="index.html#pricing">Тарифы</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <span class="theme-toggle__icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="auth">
+    <div class="auth__card">
+      <h1 class="auth__title">Регистрация</h1>
+      <p class="auth__subtitle">Создайте бесплатный аккаунт. Подписку активируете позже в личном кабинете.</p>
+      <p class="auth__ref" id="refNote" hidden>Вы регистрируетесь по приглашению <b id="refCode">—</b> 🐾</p>
+
+      <form id="registerForm" class="auth__form">
+        <div class="field">
+          <label class="field__label" for="regLogin">Логин</label>
+          <input class="field__input" type="text" id="regLogin" placeholder="kittyuser" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="regEmail">Email</label>
+          <input class="field__input" type="email" id="regEmail" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="regPassword">Пароль</label>
+          <input class="field__input" type="password" id="regPassword" placeholder="Минимум 6 символов" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn--accent btn--full">Создать аккаунт</button>
+        <p id="regError" class="auth__error"></p>
+      </form>
+
+      <p class="auth__alt">Уже есть аккаунт? <a href="login.html">Войти</a></p>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    const error = document.getElementById("regError");
+    const refCode = new URLSearchParams(window.location.search).get("ref");
+    if (refCode) {
+      const refNote = document.getElementById("refNote");
+      refNote.hidden = false;
+      document.getElementById("refCode").textContent = refCode;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      error.textContent = "";
+      const login = document.getElementById("regLogin").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const ref = new URLSearchParams(window.location.search).get("ref") || null;
+
+      if (!login || !email || !password) {
+        error.textContent = "Заполните все поля";
+        return;
+      }
+      if (password.length < 6) {
+        error.textContent = "Пароль минимум 6 символов";
+        return;
+      }
+
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Создание...";
+
+      const res = await window.kittyAuth.signUp(login, email, password, ref).catch((err) => ({ error: err.message }));
+      btn.disabled = false;
+      btn.textContent = "Создать аккаунт";
+
+      if (res && res.error) {
+        error.textContent = res.error;
+        return;
+      }
+
+      // Если Supabase сразу создал сессию — идём в кабинет,
+      // иначе (включено подтверждение email) — входим.
+      const sess = await window.kittyAuth.getSession();
+      if (sess) {
+        window.location.href = "cabinet.html";
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+</body>
+</html>

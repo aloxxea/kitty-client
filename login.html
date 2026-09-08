@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — Kitty Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">Kitty<span class="logo__dot"></span></a>
+      <nav class="nav">
+        <a href="index.html#features">Возможности</a>
+        <a href="index.html#pricing">Тарифы</a>
+      </nav>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <span class="theme-toggle__icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="auth">
+    <div class="auth__card">
+      <h1 class="auth__title">Вход в аккаунт</h1>
+      <p class="auth__subtitle">Введите email и пароль</p>
+
+      <form id="loginForm" class="auth__form">
+        <div class="field">
+          <label class="field__label" for="email">Email</label>
+          <input class="field__input" type="email" id="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="password">Пароль</label>
+          <input class="field__input" type="password" id="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn--accent btn--full">Войти</button>
+        <p id="loginError" class="auth__error"></p>
+      </form>
+
+      <p class="auth__alt">Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+      <button id="demoLogin" class="auth__demo">👀 Войти как гость (демо-мод)</button>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const error = document.getElementById("loginError");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      error.textContent = "";
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      if (!email || !password) {
+        error.textContent = "Заполните все поля";
+        return;
+      }
+
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Вход...";
+
+      const res = await window.kittyAuth.signIn(email, password).catch((err) => ({ error: err.message }));
+      btn.disabled = false;
+      btn.textContent = "Войти";
+
+      if (res && res.error) {
+        error.textContent = "Неверный email или пароль";
+        return;
+      }
+
+      // Проверка на бан
+      const profile = await window.kittyAuth.getProfile();
+      if (profile && profile.banned) {
+        await window.kittyAuth.signOut();
+        error.textContent = "Аккаунт забанен. Обратитесь к администрации.";
+        return;
+      }
+
+      window.location.href = "cabinet.html";
+    });
+
+    // Демо-вход: просто показывает подсказку (для локального теста без Supabase)
+    document.getElementById("demoLogin").addEventListener("click", () => {
+      error.textContent = "Демо-вход недоступен в онлайн-версии. Зарегистрируйтесь или войдите.";
+    });
+  </script>
+
+</body>
+</html>
