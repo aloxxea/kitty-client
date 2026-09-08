@@ -1260,11 +1260,9 @@ body {
   font-family: var(--font);
 }
 
-.admin-status { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-.admin-status--ok { color: #6adf8f; }
-.admin-status--ok::before { content: "● "; font-size: 0.6rem; }
-.admin-status--banned { color: #ff5f56; }
-.admin-status--banned::before { content: "● "; font-size: 0.6rem; }
+.admin-status { font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: inline-block; line-height: 1; padding: 6px 10px; border-radius: 999px; }
+.admin-status--ok { color: #6adf8f; background: rgba(106, 223, 143, 0.12); }
+.admin-status--banned { color: #ff5f56; background: rgba(255, 95, 86, 0.12); }
 
 .admin-actions { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; }
 .admin-btn {
