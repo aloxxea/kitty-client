@@ -104,7 +104,7 @@ const statsObserver = new IntersectionObserver(
         const values = entry.target.querySelectorAll(".stat__value");
         values.forEach((v) => {
           const text = v.textContent.trim();
-          if (text === "1.21.1" || text === "Fabric" || text === "100%") return;
+          if (text === "1.21.11" || text === "Fabric" || text === "100%") return;
           const match = text.match(/^([\d.,]+)(.*)$/);
           if (match) {
             const num = parseFloat(match[1].replace(",", "."));

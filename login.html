@@ -34,8 +34,8 @@
 
       <form id="loginForm" class="auth__form">
         <div class="field">
-          <label class="field__label" for="email">Email</label>
-          <input class="field__input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+          <label class="field__label" for="email">Email или логин</label>
+          <input class="field__input" type="text" id="email" placeholder="you@example.com или логин" required autocomplete="username">
         </div>
         <div class="field">
           <label class="field__label" for="password">Пароль</label>
@@ -137,9 +137,9 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       error.textContent = "";
-      const email = document.getElementById("email").value.trim();
+      const login = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      if (!email || !password) {
+      if (!login || !password) {
         error.textContent = "Заполните все поля";
         return;
       }
@@ -148,12 +148,12 @@
       btn.disabled = true;
       btn.textContent = "Вход...";
 
-      const res = await window.kittyAuth.signIn(email, password).catch((err) => ({ error: err.message }));
+      const res = await window.kittyAuth.signIn(login, password).catch((err) => ({ error: err.message }));
       btn.disabled = false;
       btn.textContent = "Войти";
 
       if (res && res.error) {
-        error.textContent = "Неверный email или пароль";
+        error.textContent = "Неверный email, логин или пароль";
         return;
       }
 

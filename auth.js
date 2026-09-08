@@ -87,8 +87,19 @@
     return { ok: true, user: data.user };
   }
 
-  // Вход
-  async function signIn(email, password) {
+  // Вход (по email или логину)
+  async function signIn(loginOrEmail, password) {
+    let email = loginOrEmail;
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginOrEmail || "");
+    if (!isEmail) {
+      let resolved = null;
+      try {
+        const { data, error } = await client().rpc("login_resolve", { login_or_email: loginOrEmail });
+        if (!error && data && data.email) resolved = data.email;
+      } catch (e) { /* игнор */ }
+      if (!resolved) return { error: "Пользователь не найден" };
+      email = resolved;
+    }
     const { data, error } = await client().auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     return { ok: true, user: data.user };
