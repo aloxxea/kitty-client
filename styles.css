@@ -951,6 +951,89 @@ body {
   border-color: rgba(79, 157, 255, 0.3);
 }
 
+/* ===== Экран 2FA ===== */
+.twofa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.twofa__badge {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  background: rgba(79, 157, 255, 0.12);
+  border: 1px solid rgba(79, 157, 255, 0.3);
+  border-radius: 18px;
+  animation: twofa-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes twofa-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 157, 255, 0.25); }
+  50% { box-shadow: 0 0 0 10px rgba(79, 157, 255, 0); }
+}
+
+.twofa__title {
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.twofa__sub {
+  color: var(--c-muted);
+  font-size: 0.92rem;
+  margin-bottom: 18px;
+}
+
+.twofa__sub b { color: var(--c-accent, #4f9dff); }
+
+.twofa__taimer {
+  color: var(--c-muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.twofa__resend {
+  background: none;
+  border: none;
+  color: var(--c-accent, #4f9dff);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 8px;
+}
+
+.twofa__resend:hover { opacity: 0.8; }
+
+.twofa__field {
+  width: 100%;
+  text-align: center;
+  font-size: 1.8rem;
+  letter-spacing: 22px;
+  padding: 16px;
+  font-weight: 700;
+  text-indent: 22px;
+}
+
+.twofa__back {
+  background: none;
+  border: none;
+  color: var(--c-muted);
+  font-family: var(--font);
+  font-size: 0.82rem;
+  cursor: pointer;
+  margin-top: 4px;
+  padding: 6px;
+}
+
+.twofa__back:hover { color: var(--c-text); }
+
 /* ===== Cabinet ===== */
 .cab-page {
   min-height: 100vh;

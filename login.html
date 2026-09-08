@@ -46,13 +46,18 @@
       </form>
 
       <form id="twoFaForm" class="auth__form" hidden>
-        <p class="auth__subtitle" id="twoFaInfo">Введите код из Telegram</p>
-        <div class="field">
-          <label class="field__label" for="twoFaCode">Код 2FA</label>
-          <input class="field__input" type="text" id="twoFaCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+        <div class="twofa">
+          <div class="twofa__badge" aria-hidden="true">🔐</div>
+          <div class="twofa__title">Двухфакторная защита</div>
+          <p class="twofa__sub">Код отправлен в Telegram<br>введите его ниже</p>
+          <div class="field" style="width:100%">
+            <input class="field__input twofa__field" type="text" id="twoFaCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" autocomplete="one-time-code" autofocus>
+          </div>
+          <p class="twofa__taimer" id="twoFaTimer">Код действителен <span id="twoFaCount">5:00</span></p>
+          <button type="submit" id="twoFaSubmit" class="btn btn--accent btn--full">Подтвердить вход</button>
+          <button type="button" id="twoFaResend" class="twofa__resend">Отправить код ещё раз</button>
+          <button type="button" id="twoFaBack" class="twofa__back">← Вернуться к входу</button>
         </div>
-        <button type="submit" id="twoFaSubmit" class="btn btn--accent btn--full">Подтвердить</button>
-        <button type="button" id="twoFaBack" class="auth__demo">← Назад к входу</button>
         <p id="twoFaError" class="auth__error"></p>
       </form>
 
@@ -69,13 +74,47 @@
     const SITE = window.KITTY_CONFIG.SUPABASE_URL;
 
     let pendingSession = null;
+    let twoFaTimerId = null;
 
-    function showTwoFa(info) {
+    function startTimer(seconds) {
+      if (twoFaTimerId) clearInterval(twoFaTimerId);
+      const el = document.getElementById("twoFaCount");
+      twoFaTimerId = setInterval(() => {
+        const m = String(Math.floor(seconds / 60)).padStart(1, "0");
+        const s = String(seconds % 60).padStart(2, "0");
+        el.textContent = m + ":" + s;
+        if (seconds <= 0) {
+          clearInterval(twoFaTimerId);
+          twoFaTimerId = null;
+          el.textContent = "истёк";
+        }
+        seconds--;
+      }, 1000);
+    }
+
+    async function request2fa(sess) {
+      let resp;
+      try {
+        resp = await fetch(SITE + "/functions/v1/send-2fa", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + sess.access_token, "Content-Type": "application/json" },
+          body: "{}"
+        });
+      } catch (err) {
+        return { netErr: true };
+      }
+      let data = {};
+      try { data = await resp.json(); } catch (err) { /* ignore */ }
+      return { resp, data };
+    }
+
+    function showTwoFa() {
       form.hidden = true;
       twoFaError.textContent = "";
-      document.getElementById("twoFaInfo").textContent = info;
       twoFaForm.hidden = false;
+      document.getElementById("twoFaCode").value = "";
       document.getElementById("twoFaCode").focus();
+      startTimer(300);
     }
 
     function showLogin() {
@@ -122,20 +161,11 @@
       pendingSession = sess;
 
       // Запрос 2FA: требует ли аккаунт код
-      let resp;
-      try {
-        resp = await fetch(SITE + "/functions/v1/send-2fa", {
-          method: "POST",
-          headers: { Authorization: "Bearer " + sess.access_token, "Content-Type": "application/json" },
-          body: "{}"
-        });
-      } catch (err) {
-        error.textContent = "Ошибка сети: " + err.message;
+      const { resp, data, netErr } = await request2fa(sess);
+      if (netErr) {
+        error.textContent = "Ошибка сети: не удалось запросить код.";
         return;
       }
-
-      let data = {};
-      try { data = await resp.json(); } catch (err) { /* ignore */ }
 
       if (data && data.error === "2fa_not_required") {
         window.location.href = "cabinet.html";
@@ -154,12 +184,13 @@
         return;
       }
 
-      showTwoFa("Код отправлен в Telegram. Введите его ниже (действует 5 минут).");
+      showTwoFa();
     });
 
     twoFaForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       twoFaError.textContent = "";
+      twoFaError.style.color = "";
       const code = document.getElementById("twoFaCode").value.trim();
       if (!/^\d{6}$/.test(code)) {
         twoFaError.textContent = "Введите 6 цифр кода";
@@ -207,6 +238,35 @@
     document.getElementById("twoFaBack").addEventListener("click", () => {
       pendingSession = null;
       showLogin();
+    });
+
+    document.getElementById("twoFaResend").addEventListener("click", async () => {
+      if (!pendingSession) { showLogin(); return; }
+      const resendBtn = document.getElementById("twoFaResend");
+      resendBtn.disabled = true;
+      resendBtn.textContent = "Отправка...";
+      twoFaError.textContent = "";
+      const { resp, data, netErr } = await request2fa(pendingSession);
+      resendBtn.disabled = false;
+      resendBtn.textContent = "Отправить код ещё раз";
+      if (netErr) {
+        twoFaError.textContent = "Ошибка сети. Попробуйте ещё раз.";
+        return;
+      }
+      if (resp.status === 429 || (data && data.error === "locked")) {
+        twoFaError.textContent = data.message || "Слишком много попыток.";
+        return;
+      }
+      if (!data || !data.ok) {
+        twoFaError.textContent = "Не удалось отправить код.";
+        return;
+      }
+      document.getElementById("twoFaCode").value = "";
+      document.getElementById("twoFaCode").focus();
+      startTimer(300);
+      twoFaError.textContent = "Новый код отправлен!";
+      twoFaError.style.color = "#a3c98f";
+      setTimeout(() => { twoFaError.style.color = ""; }, 2500);
     });
 
     // Демо-вход
