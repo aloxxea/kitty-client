@@ -31,19 +31,29 @@
   <main class="auth">
     <div class="auth__card">
       <h1 class="auth__title">Вход в аккаунт</h1>
-      <p class="auth__subtitle">Введите email и пароль</p>
 
       <form id="loginForm" class="auth__form">
         <div class="field">
           <label class="field__label" for="email">Email</label>
-          <input class="field__input" type="email" id="email" placeholder="you@example.com" required>
+          <input class="field__input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
         </div>
         <div class="field">
           <label class="field__label" for="password">Пароль</label>
-          <input class="field__input" type="password" id="password" placeholder="••••••••" required>
+          <input class="field__input" type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
         </div>
         <button type="submit" class="btn btn--accent btn--full">Войти</button>
         <p id="loginError" class="auth__error"></p>
+      </form>
+
+      <form id="twoFaForm" class="auth__form" hidden>
+        <p class="auth__subtitle" id="twoFaInfo">Введите код из Telegram</p>
+        <div class="field">
+          <label class="field__label" for="twoFaCode">Код 2FA</label>
+          <input class="field__input" type="text" id="twoFaCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+        </div>
+        <button type="submit" id="twoFaSubmit" class="btn btn--accent btn--full">Подтвердить</button>
+        <button type="button" id="twoFaBack" class="auth__demo">← Назад к входу</button>
+        <p id="twoFaError" class="auth__error"></p>
       </form>
 
       <p class="auth__alt">Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
@@ -54,6 +64,24 @@
   <script>
     const form = document.getElementById("loginForm");
     const error = document.getElementById("loginError");
+    const twoFaForm = document.getElementById("twoFaForm");
+    const twoFaError = document.getElementById("twoFaError");
+    const SITE = window.KITTY_CONFIG.SUPABASE_URL;
+
+    let pendingSession = null;
+
+    function showTwoFa(info) {
+      form.hidden = true;
+      twoFaError.textContent = "";
+      document.getElementById("twoFaInfo").textContent = info;
+      twoFaForm.hidden = false;
+      document.getElementById("twoFaCode").focus();
+    }
+
+    function showLogin() {
+      twoFaForm.hidden = true;
+      form.hidden = false;
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -86,10 +114,102 @@
         return;
       }
 
-      window.location.href = "cabinet.html";
+      const sess = await window.kittyAuth.getSession();
+      if (!sess) {
+        error.textContent = "Не удалось получить сессию.";
+        return;
+      }
+      pendingSession = sess;
+
+      // Запрос 2FA: требует ли аккаунт код
+      let resp;
+      try {
+        resp = await fetch(SITE + "/functions/v1/send-2fa", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + sess.access_token, "Content-Type": "application/json" },
+          body: "{}"
+        });
+      } catch (err) {
+        error.textContent = "Ошибка сети: " + err.message;
+        return;
+      }
+
+      let data = {};
+      try { data = await resp.json(); } catch (err) { /* ignore */ }
+
+      if (data && data.error === "2fa_not_required") {
+        window.location.href = "cabinet.html";
+        return;
+      }
+      if (resp.status === 429 || (data && data.error === "locked")) {
+        error.textContent = data.message || "Слишком много попыток. Попробуйте позже.";
+        return;
+      }
+      if (data && data.error === "not_configured") {
+        error.textContent = "2FA временно недоступно (ошибка на сервере).";
+        return;
+      }
+      if (!data || !data.ok) {
+        error.textContent = "Не удалось отправить код. Попробуйте позже.";
+        return;
+      }
+
+      showTwoFa("Код отправлен в Telegram. Введите его ниже (действует 5 минут).");
     });
 
-    // Демо-вход: просто показывает подсказку (для локального теста без Supabase)
+    twoFaForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      twoFaError.textContent = "";
+      const code = document.getElementById("twoFaCode").value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        twoFaError.textContent = "Введите 6 цифр кода";
+        return;
+      }
+      if (!pendingSession) {
+        showLogin();
+        return;
+      }
+
+      const btn = document.getElementById("twoFaSubmit");
+      btn.disabled = true;
+      btn.textContent = "Проверка...";
+
+      let resp;
+      try {
+        resp = await fetch(SITE + "/functions/v1/verify-2fa", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + pendingSession.access_token, "Content-Type": "application/json" },
+          body: JSON.stringify({ code })
+        });
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "Подтвердить";
+        twoFaError.textContent = "Ошибка сети: " + err.message;
+        return;
+      }
+
+      let data = {};
+      try { data = await resp.json(); } catch (err) { /* ignore */ }
+      btn.disabled = false;
+      btn.textContent = "Подтвердить";
+
+      if (data && data.ok) {
+        window.location.href = "cabinet.html";
+        return;
+      }
+      if (resp.status === 429 || (data && data.error === "locked")) {
+        twoFaError.textContent = "Слишком много попыток. Вход заблокирован на 15 минут.";
+        return;
+      }
+      twoFaError.textContent = "Неверный код. Попробуйте ещё раз.";
+    });
+
+    document.getElementById("twoFaBack").addEventListener("click", () => {
+      pendingSession = null;
+      showLogin();
+    });
+
+    // Демо-вход
     document.getElementById("demoLogin").addEventListener("click", () => {
       error.textContent = "Демо-вход недоступен в онлайн-версии. Зарегистрируйтесь или войдите.";
     });
