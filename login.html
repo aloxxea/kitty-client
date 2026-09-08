@@ -29,7 +29,7 @@
   </header>
 
   <main class="auth">
-    <div class="auth__card">
+    <div class="auth__card" id="cardLogin">
       <h1 class="auth__title">Вход в аккаунт</h1>
 
       <form id="loginForm" class="auth__form">
@@ -45,31 +45,34 @@
         <p id="loginError" class="auth__error"></p>
       </form>
 
-      <form id="twoFaForm" class="auth__form" hidden>
-        <div class="twofa">
-          <div class="twofa__badge" aria-hidden="true">🔐</div>
-          <div class="twofa__title">Двухфакторная защита</div>
-          <p class="twofa__sub">Код отправлен в Telegram<br>введите его ниже</p>
+      <p class="auth__alt">Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+      <button id="demoLogin" class="auth__demo">👀 Войти как гость (демо-мод)</button>
+    </div>
+
+    <div class="auth__card" id="card2fa" hidden>
+      <div class="twofa">
+        <div class="twofa__badge" aria-hidden="true">🔐</div>
+        <div class="twofa__title">Двухфакторная защита</div>
+        <p class="twofa__sub">Код отправлен в Telegram<br>введите его ниже</p>
+        <form novalidate>
           <div class="field" style="width:100%">
-            <input class="field__input twofa__field" type="text" id="twoFaCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" autocomplete="one-time-code" autofocus>
+            <input class="field__input twofa__field" type="text" id="twoFaCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
           </div>
           <p class="twofa__taimer" id="twoFaTimer">Код действителен <span id="twoFaCount">5:00</span></p>
           <button type="submit" id="twoFaSubmit" class="btn btn--accent btn--full">Подтвердить вход</button>
           <button type="button" id="twoFaResend" class="twofa__resend">Отправить код ещё раз</button>
           <button type="button" id="twoFaBack" class="twofa__back">← Вернуться к входу</button>
-        </div>
-        <p id="twoFaError" class="auth__error"></p>
-      </form>
-
-      <p class="auth__alt">Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
-      <button id="demoLogin" class="auth__demo">👀 Войти как гость (демо-мод)</button>
+          <p id="twoFaError" class="auth__error"></p>
+        </form>
+      </div>
     </div>
   </main>
 
   <script>
     const form = document.getElementById("loginForm");
     const error = document.getElementById("loginError");
-    const twoFaForm = document.getElementById("twoFaForm");
+    const cardLogin = document.getElementById("cardLogin");
+    const card2fa = document.getElementById("card2fa");
     const twoFaError = document.getElementById("twoFaError");
     const SITE = window.KITTY_CONFIG.SUPABASE_URL;
 
@@ -109,17 +112,26 @@
     }
 
     function showTwoFa() {
-      form.hidden = true;
+      cardLogin.hidden = true;
       twoFaError.textContent = "";
-      twoFaForm.hidden = false;
+      twoFaError.style.color = "";
+      card2fa.hidden = false;
+      card2fa.style.opacity = "0";
+      card2fa.style.transform = "translateY(12px)";
+      setTimeout(() => {
+        card2fa.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+        card2fa.style.opacity = "1";
+        card2fa.style.transform = "translateY(0)";
+      }, 20);
       document.getElementById("twoFaCode").value = "";
       document.getElementById("twoFaCode").focus();
       startTimer(300);
     }
 
     function showLogin() {
-      twoFaForm.hidden = true;
-      form.hidden = false;
+      card2fa.hidden = true;
+      cardLogin.hidden = false;
+      error.textContent = "";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -186,6 +198,8 @@
 
       showTwoFa();
     });
+
+    const twoFaForm = document.querySelector("#card2fa form");
 
     twoFaForm.addEventListener("submit", async (e) => {
       e.preventDefault();
