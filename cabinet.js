@@ -356,7 +356,7 @@ document.querySelectorAll("[data-buy]").forEach((btn) => {
       return;
     }
 
-    // Оплата рублями — создаём платёж через ЮKassa
+    // Оплата рублями/СБП — создаём платёж через ЮKassa
     msg.textContent = "Создаю платёж…";
     msg.style.color = "#a3c98f";
     let resp;
@@ -368,7 +368,7 @@ document.querySelectorAll("[data-buy]").forEach((btn) => {
           Authorization: "Bearer " + (sess ? sess.access_token : ""),
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, method }),
       });
     } catch (err) {
       msg.textContent = "Ошибка сети при создании платежа.";
@@ -412,7 +412,7 @@ async function renderPayments(user) {
     body.innerHTML = '<tr><td class="admin-empty">Платежей пока нет.</td></tr>';
     return;
   }
-  const methodName = { rub: "₽ карта", stars: "⭐ Stars" };
+  const methodName = { rub: "₽ карта", sbp: "СБП", stars: "⭐ Stars" };
   const statusName = { pending: "ожидание", confirmed: "оплачен", canceled: "отменён", failed: "ошибка" };
   body.innerHTML = data.map((p) =>
     "<tr><td>" + esc(tierInfo(p.tier).name) + "</td>"
