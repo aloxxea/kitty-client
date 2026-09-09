@@ -198,6 +198,8 @@ async function renderAdmin(admin) {
       + "</td></tr>";
   });
   body.innerHTML = html || '<tr><td colspan="6" class="admin-empty">Пользователи не найдены</td></tr>';
+  const counter = document.getElementById("adminCount");
+  if (counter) counter.textContent = "Пользователей: " + users.length + (q ? ' (фильтр: "' + q + '")' : "");
 }
 
 function esc(s) {
@@ -235,9 +237,11 @@ async function adminAction(evt) {
     }
     if (el.dataset.action === "ban" || el.dataset.action === "unban") {
       const banned = el.dataset.action === "ban";
+      if (banned && !window.confirm("Забанить пользователя «" + login + "»? Он не сможет войти в аккаунт.")) return;
       const err = await callAdmin("admin_set_ban", { target_login: login, do_ban: banned });
       adminLog(err ? ("Ошибка: " + err.message) : (banned ? "Пользователь забанен" : "Пользователь разбанен"), !err);
     } else if (el.dataset.action === "del") {
+      if (!window.confirm("Удалить пользователя «" + login + "» БЕЗВОЗВРАТНО? Этот аккаунт будет удалён вместе с профилем, подпиской и историей.")) return;
       const err = await callAdmin("admin_delete_user", { target_login: login });
       adminLog(err ? ("Ошибка: " + err.message) : "Пользователь удалён", !err);
     }
@@ -365,7 +369,32 @@ document.getElementById("promoGetBtn").addEventListener("click", async () => {
     msg.style.color = "#ff5f56";
     return;
   }
+  lastPromoCode = data;
   msg.textContent = "Мой промокод: " + data + ". Друг получит +2 дня, когда введёт его.";
+  msg.style.color = "#a3c98f";
+});
+
+let lastPromoCode = "";
+
+document.getElementById("promoCopyBtn").addEventListener("click", async () => {
+  if (!lastPromoCode) {
+    const user = await requireAuth();
+    if (!user) return;
+    document.getElementById("promoGetBtn").click();
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(lastPromoCode);
+  } catch (err) {
+    const ta = document.createElement("textarea");
+    ta.value = lastPromoCode;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
+  const msg = document.getElementById("promoMsg");
+  msg.textContent = "Промокод " + lastPromoCode + " скопирован! Отправь его другу.";
   msg.style.color = "#a3c98f";
 });
 

@@ -165,6 +165,7 @@
             <div class="sub-key-row">
               <input class="field__input" type="text" id="promoCode" placeholder="XXXXXXXX">
               <button id="promoGetBtn" class="btn btn--ghost btn--sm">Мой код</button>
+              <button id="promoCopyBtn" class="btn btn--ghost btn--sm" type="button" title="Скопировать мой промокод">Копировать</button>
               <button id="promoApplyBtn" class="btn btn--accent">Применить</button>
             </div>
             <p id="promoMsg" class="auth__error"></p>
@@ -176,6 +177,7 @@
           <p class="cab__sub">Управление пользователями, ролями и подписками.</p>
           <div class="admin-toolbar">
             <input class="field__input admin-search" id="adminSearch" type="text" placeholder="Поиск по логину или email...">
+            <span class="admin-count" id="adminCount"></span>
           </div>
           <div class="admin-table-wrap">
             <table class="admin-table" id="adminTable">

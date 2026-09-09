@@ -1161,6 +1161,15 @@ body {
 .admin-toolbar {
   margin-bottom: 16px;
   animation: adminFade 0.45s ease both;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.admin-count {
+  font-size: 13px;
+  color: var(--c-muted, #98a2b8);
+  white-space: nowrap;
 }
 .admin-search { max-width: 340px; transition: border-color var(--anim-fast) ease, box-shadow var(--anim-fast) ease; }
 .admin-search:focus {
