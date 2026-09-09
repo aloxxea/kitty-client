@@ -160,7 +160,7 @@ async function renderAdmin(admin) {
     if (error) throw error;
     users = data || [];
   } catch (e) {
-    body.innerHTML = '<tr><td colspan="6" class="admin-empty">Ошибка загрузки списка: ' + (e.message || "нет доступа") + "</td></tr>";
+    body.innerHTML = '<tr><td colspan="6" class="admin-empty">Ошибка загрузки списка: ' + esc(e.message || "нет доступа") + "</td></tr>";
     return;
   }
 
@@ -185,19 +185,25 @@ async function renderAdmin(admin) {
       .join("");
 
     html += '<tr class="' + (banned ? "admin-row--banned" : "") + '">'
-      + "<td>" + u.login + (isSelf ? ' <span class="admin-you">(вы)</span>' : "") + "</td>"
-      + "<td>" + (u.email || "—") + "</td>"
-      + '<td><select class="admin-role" data-login="' + u.login + '" data-field="role" ' + (roleOptions ? "" : "disabled") + '>' + roleOptions + "</select></td>"
-      + '<td><select class="admin-role" data-login="' + u.login + '" data-field="tier">'
+      + "<td>" + esc(u.login) + (isSelf ? ' <span class="admin-you">(вы)</span>' : "") + "</td>"
+      + "<td>" + esc(u.email || "—") + "</td>"
+      + '<td><select class="admin-role" data-login="' + esc(u.login) + '" data-field="role" ' + (roleOptions ? "" : "disabled") + '>' + roleOptions + "</select></td>"
+      + '<td><select class="admin-role" data-login="' + esc(u.login) + '" data-field="tier">'
       + Object.keys(TIER_INFO).map((t) => '<option value="' + t + '" ' + (u.tier === t ? "selected" : "") + '>' + TIER_INFO[t].name + "</option>").join("")
       + "</select></td>"
       + '<td><span class="admin-status ' + (banned ? "admin-status--banned" : "admin-status--ok") + '">' + (banned ? "Забанен" : "Активен") + "</span></td>"
       + '<td class="admin-actions">'
-      + '<button class="admin-btn admin-btn--' + (banned ? "unban" : "ban") + '" data-login="' + u.login + '" data-action="' + (banned ? "unban" : "ban") + '" ' + (isSelf ? "disabled" : "") + '>' + (banned ? "Разбанить" : "Забанить") + "</button>"
-      + '<button class="admin-btn admin-btn--del" data-login="' + u.login + '" data-action="del" ' + (isSelf ? "disabled" : "") + '>Удалить</button>'
+      + '<button class="admin-btn admin-btn--' + (banned ? "unban" : "ban") + '" data-login="' + esc(u.login) + '" data-action="' + (banned ? "unban" : "ban") + '" ' + (isSelf ? "disabled" : "") + '>' + (banned ? "Разбанить" : "Забанить") + "</button>"
+      + '<button class="admin-btn admin-btn--del" data-login="' + esc(u.login) + '" data-action="del" ' + (isSelf ? "disabled" : "") + '>Удалить</button>'
       + "</td></tr>";
   });
   body.innerHTML = html || '<tr><td colspan="6" class="admin-empty">Пользователи не найдены</td></tr>';
+}
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function adminLog(msg, ok) {
@@ -335,17 +341,57 @@ document.querySelectorAll("[data-buy]").forEach((btn) => {
       return;
     }
     const tier = btn.dataset.buy;
-    const { data, error } = await client().rpc("buy_tier", { p_tier: tier });
-    if (error || data !== "OK") {
-      msg.textContent = "Ошибка оплаты.";
-      msg.style.color = "#ff5f56";
-      return;
-    }
-    msg.textContent = "Оплата прошла! Подписка «" + tierInfo(tier).name + "» активирована.";
+    msg.textContent = "Оплата проходит в Telegram-боте 🇹 Ожидайте...";
+    msg.style.color = "#ffcf70";
+    window.open("https://t.me/kitty2fa_bot?start=buy_" + tier, "_blank");
+  });
+});
+
+document.getElementById("promoGetBtn").addEventListener("click", async () => {
+  const user = await requireAuth();
+  if (!user) return;
+  const msg = document.getElementById("promoMsg");
+  const authId = user.auth_id;
+  const { data, error } = await client().rpc("get_or_create_promo", { p_auth: authId });
+  if (error || !data) {
+    msg.textContent = "Не получилось получить код. Попробуйте позже.";
+    msg.style.color = "#ff5f56";
+    return;
+  }
+  msg.textContent = "Мой промокод: " + data + ". Друг получит +2 дня, когда введёт его.";
+  msg.style.color = "#a3c98f";
+});
+
+document.getElementById("promoApplyBtn").addEventListener("click", async () => {
+  const user = await requireAuth();
+  if (!user) return;
+  const msg = document.getElementById("promoMsg");
+  const code = document.getElementById("promoCode").value.trim().toUpperCase();
+  if (!code) {
+    msg.textContent = "Введите промокод.";
+    msg.style.color = "#ff5f56";
+    return;
+  }
+  const authId = user.auth_id;
+  const { data, error } = await client().rpc("apply_promo_credit", { p_promo_code: code, p_buyer_auth: authId });
+  if (error || !data) {
+    msg.textContent = "Ошибка применения промокода.";
+    msg.style.color = "#ff5f56";
+    return;
+  }
+  if (data.message === "not_found") { msg.textContent = "Промокод не найден."; msg.style.color = "#ff5f56"; return; }
+  if (data.message === "self") { msg.textContent = "Это твой собственный промокод."; msg.style.color = "#ff5f56"; return; }
+  if (data.message === "owner_missing") { msg.textContent = "Владелец промокода не найден."; msg.style.color = "#ff5f56"; return; }
+  if (data.message === "lifetime") { msg.textContent = "Промокод применён, но у владельца бессрочная подписка — бонус не начислен."; msg.style.color = "#a3c98f"; return; }
+  if (data.message === "credited") {
+    msg.textContent = "Промокод применён! Владелец получил +2 дня.";
     msg.style.color = "#a3c98f";
     renderSubscription(user);
     fillUser();
-  });
+    return;
+  }
+  msg.textContent = "Невозможно применить промокод.";
+  msg.style.color = "#ff5f56";
 });
 
 // Переключение вкладок

@@ -138,25 +138,36 @@
 
           <div class="sub-block">
             <h3 class="sub-block__title">Купить подписку</h3>
-            <p class="sub-block__desc">Выберите тариф — оплата демонстрационная (без реального списания).</p>
+            <p class="sub-block__desc">Выберите тариф — оплата в Telegram-боте через Stars.</p>
             <div class="sub-plans">
               <div class="sub-plan">
                 <div class="sub-plan__name">1 месяц</div>
-                <div class="sub-plan__price">299 ₽</div>
+                <div class="sub-plan__price">149 ⭐</div>
                 <button class="btn btn--ghost btn--sm" data-buy="month">Купить</button>
               </div>
               <div class="sub-plan sub-plan--popular">
                 <div class="sub-plan__name">90 дней</div>
-                <div class="sub-plan__price">599 ₽</div>
+                <div class="sub-plan__price">349 ⭐</div>
                 <button class="btn btn--accent btn--sm" data-buy="quarter">Купить</button>
               </div>
               <div class="sub-plan">
                 <div class="sub-plan__name">Навсегда</div>
-                <div class="sub-plan__price">1499 ₽</div>
+                <div class="sub-plan__price">799 ⭐</div>
                 <button class="btn btn--accent btn--sm" data-buy="lifetime">Купить</button>
               </div>
             </div>
             <p id="buyMsg" class="sub-buy-msg"></p>
+          </div>
+
+          <div class="sub-block">
+            <h3 class="sub-block__title">🎁 Промокод от друга</h3>
+            <p class="sub-block__desc">Поделитесь своим промокодом — друг получит +2 дня к подписке, а он может подарить +2 дня вам. Нажимайте кнопку, чтобы применить.</p>
+            <div class="sub-key-row">
+              <input class="field__input" type="text" id="promoCode" placeholder="XXXXXXXX">
+              <button id="promoGetBtn" class="btn btn--ghost btn--sm">Мой код</button>
+              <button id="promoApplyBtn" class="btn btn--accent">Применить</button>
+            </div>
+            <p id="promoMsg" class="auth__error"></p>
           </div>
         </div>
 
