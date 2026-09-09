@@ -100,6 +100,7 @@ async function fillUser() {
 
   renderTg(user);
   renderSubscription(user);
+  renderPayments(user);
 }
 
 // ---- Связка Telegram ----
@@ -345,18 +346,82 @@ document.querySelectorAll("[data-buy]").forEach((btn) => {
       return;
     }
     const tier = btn.dataset.buy;
-    const { data, error } = await client().rpc("buy_tier", { p_tier: tier });
-    if (error || data !== "OK") {
-      msg.textContent = "Ошибка оплаты.";
+    const method = btn.dataset.method || "rub";
+
+    // Оплата Stars — уводим в бота
+    if (method === "stars") {
+      msg.textContent = "Открываю бота для оплаты Stars…";
+      msg.style.color = "#a3c98f";
+      window.open("https://t.me/kitty2fa_bot/start?startapp=buy_" + tier, "_blank", "noopener");
+      return;
+    }
+
+    // Оплата рублями — создаём платёж через ЮKassa
+    msg.textContent = "Создаю платёж…";
+    msg.style.color = "#a3c98f";
+    let resp;
+    try {
+      const sess = await window.kittyAuth.getSession();
+      resp = await window.fetch("https://lsqivdlngyrcdavuyszq.supabase.co/functions/v1/pay-init", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + (sess ? sess.access_token : ""),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tier }),
+      });
+    } catch (err) {
+      msg.textContent = "Ошибка сети при создании платежа.";
       msg.style.color = "#ff5f56";
       return;
     }
-    msg.textContent = "Оплата прошла! Подписка «" + tierInfo(tier).name + "» активирована.";
-    msg.style.color = "#a3c98f";
-    renderSubscription(user);
-    fillUser();
+    let data = {};
+    try { data = await resp.json(); } catch (err) { /* ignore */ }
+
+    if (!data || !data.ok) {
+      if (data && data.error === "already_paid") {
+        msg.textContent = "У вас уже есть активная подписка.";
+      } else if (data && data.error === "yookassa_not_configured") {
+        msg.textContent = "Оплата картой временно недоступна. Попробуйте Stars (⭐).";
+      } else if (resp.status === 401 || (data && data.error === "unauthorized")) {
+        msg.textContent = "Нужно войти в аккаунт заново.";
+      } else {
+        msg.textContent = "Ошибка создания платежа. Попробуйте позже.";
+      }
+      msg.style.color = "#ff5f56";
+      return;
+    }
+
+    // Переходим на платёжную страницу ЮKassa
+    if (data.confirmation_url) {
+      msg.textContent = "Открываю платёжную страницу…";
+      msg.style.color = "#a3c98f";
+      window.open(data.confirmation_url, "_blank", "noopener");
+    } else {
+      msg.textContent = "Платёж создан, но ссылка не получена.";
+      msg.style.color = "#ff5f56";
+    }
   });
 });
+
+async function renderPayments(user) {
+  const body = document.getElementById("payBody");
+  if (!body) return;
+  const { data, error } = await window.supabaseClient.from("payments").select("tier, method, amount, status, created_at").eq("auth_id", user.auth_id).order("created_at", { ascending: false }).limit(20);
+  if (error || !data || !data.length) {
+    body.innerHTML = '<tr><td class="admin-empty">Платежей пока нет.</td></tr>';
+    return;
+  }
+  const methodName = { rub: "₽ карта", stars: "⭐ Stars" };
+  const statusName = { pending: "ожидание", confirmed: "оплачен", canceled: "отменён", failed: "ошибка" };
+  body.innerHTML = data.map((p) =>
+    "<tr><td>" + esc(tierInfo(p.tier).name) + "</td>"
+    + "<td>" + (methodName[p.method] || p.method) + "</td>"
+    + "<td>" + p.amount + "</td>"
+    + "<td>" + (statusName[p.status] || p.status) + "</td>"
+    + "<td>" + new Date(p.created_at).toLocaleDateString("ru-RU") + "</td></tr>"
+  ).join("");
+}
 
 document.getElementById("promoGetBtn").addEventListener("click", async () => {
   const user = await requireAuth();

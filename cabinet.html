@@ -138,22 +138,31 @@
 
           <div class="sub-block">
             <h3 class="sub-block__title">Купить подписку</h3>
-            <p class="sub-block__desc">Выберите тариф — оплата демонстрационная (без реального списания).</p>
+            <p class="sub-block__desc">Выберите тариф и способ оплаты: картой (₽) или Telegram Stars (⭐, +20%).</p>
             <div class="sub-plans">
               <div class="sub-plan">
                 <div class="sub-plan__name">1 месяц</div>
-                <div class="sub-plan__price">299 ₽</div>
-                <button class="btn btn--ghost btn--sm" data-buy="month">Купить</button>
+                <div class="sub-plan__price">299 ₽ / 179 ⭐</div>
+                <div class="sub-plan__actions">
+                  <button class="btn btn--ghost btn--sm" data-buy="month" data-method="rub">₽ Картой</button>
+                  <button class="btn btn--ghost btn--sm" data-buy="month" data-method="stars">⭐ Stars</button>
+                </div>
               </div>
               <div class="sub-plan sub-plan--popular">
                 <div class="sub-plan__name">90 дней</div>
-                <div class="sub-plan__price">599 ₽</div>
-                <button class="btn btn--accent btn--sm" data-buy="quarter">Купить</button>
+                <div class="sub-plan__price">599 ₽ / 419 ⭐</div>
+                <div class="sub-plan__actions">
+                  <button class="btn btn--accent btn--sm" data-buy="quarter" data-method="rub">₽ Картой</button>
+                  <button class="btn btn--accent btn--sm" data-buy="quarter" data-method="stars">⭐ Stars</button>
+                </div>
               </div>
               <div class="sub-plan">
                 <div class="sub-plan__name">Навсегда</div>
-                <div class="sub-plan__price">1499 ₽</div>
-                <button class="btn btn--accent btn--sm" data-buy="lifetime">Купить</button>
+                <div class="sub-plan__price">1499 ₽ / 959 ⭐</div>
+                <div class="sub-plan__actions">
+                  <button class="btn btn--accent btn--sm" data-buy="lifetime" data-method="rub">₽ Картой</button>
+                  <button class="btn btn--accent btn--sm" data-buy="lifetime" data-method="stars">⭐ Stars</button>
+                </div>
               </div>
             </div>
             <p id="buyMsg" class="sub-buy-msg"></p>
@@ -169,6 +178,13 @@
               <button id="promoApplyBtn" class="btn btn--accent">Применить</button>
             </div>
             <p id="promoMsg" class="auth__error"></p>
+          </div>
+
+          <div class="sub-block">
+            <h3 class="sub-block__title">🧾 История платежей</h3>
+            <p class="sub-block__desc">Все операции по вашему аккаунту.</p>
+            <div class="payments-wrap"><table class="admin-table" id="payTable"><tbody id="payBody"></tbody></table></div>
+            <p id="payMsg" class="auth__error"></p>
           </div>
         </div>
 
