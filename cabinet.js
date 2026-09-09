@@ -341,9 +341,16 @@ document.querySelectorAll("[data-buy]").forEach((btn) => {
       return;
     }
     const tier = btn.dataset.buy;
-    msg.textContent = "Оплата проходит в Telegram-боте 🇹 Ожидайте...";
-    msg.style.color = "#ffcf70";
-    window.open("https://t.me/kitty2fa_bot?start=buy_" + tier, "_blank");
+    const { data, error } = await client().rpc("buy_tier", { p_tier: tier });
+    if (error || data !== "OK") {
+      msg.textContent = "Ошибка оплаты.";
+      msg.style.color = "#ff5f56";
+      return;
+    }
+    msg.textContent = "Оплата прошла! Подписка «" + tierInfo(tier).name + "» активирована.";
+    msg.style.color = "#a3c98f";
+    renderSubscription(user);
+    fillUser();
   });
 });
 
